@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>คู่มือสร้างวิดีโอด้วย Claude Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --text:#1f1d1a; --muted:#6a655c;
+  --border:#e2ded5; --accent:#c2552d; --accent-soft:#fbe9e1; --ok:#2f7d4f; --ok-soft:#e3f2e8;
+  --warn:#9a6a00; --warn-soft:#fdf3d8; --code-bg:#1e1c1a; --code-text:#f3efe7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161513; --surface:#1f1e1b; --surface-2:#292724; --text:#ece8e0; --muted:#a39d92;
+    --border:#38352f; --accent:#ec8a62; --accent-soft:#3a251c; --ok:#6fcb93; --ok-soft:#1d3226;
+    --warn:#e8bf5a; --warn-soft:#352c17; --code-bg:#0f0e0d; --code-text:#f3efe7;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161513; --surface:#1f1e1b; --surface-2:#292724; --text:#ece8e0; --muted:#a39d92;
+  --border:#38352f; --accent:#ec8a62; --accent-soft:#3a251c; --ok:#6fcb93; --ok-soft:#1d3226;
+  --warn:#e8bf5a; --warn-soft:#352c17; --code-bg:#0f0e0d; --code-text:#f3efe7;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Sarabun",system-ui,sans-serif;font-size:17px;line-height:1.75}
+a{color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px 1fr;max-width:1180px;margin:0 auto;gap:40px;padding:0 24px}
+nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;padding:32px 0}
+nav.toc h2{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+nav.toc ol{list-style:none;margin:0;padding:0;counter-reset:t}
+nav.toc li{counter-increment:t}
+nav.toc a{display:block;padding:6px 10px;border-radius:8px;color:var(--text);text-decoration:none;font-size:15px}
+nav.toc a::before{content:counter(t) ". ";color:var(--muted)}
+nav.toc a:hover{background:var(--surface-2)}
+main{padding:40px 0 80px;min-width:0}
+header.hero{padding:8px 0 24px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.eyebrow{color:var(--accent);font-weight:700;font-size:14px;letter-spacing:.05em}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.3;margin:6px 0 12px}
+.lead{color:var(--muted);font-size:18px;margin:0}
+section{padding-top:28px}
+h2{font-size:26px;line-height:1.35;margin:24px 0 8px;scroll-margin-top:16px}
+h2 .num{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:10px;background:var(--accent);color:#fff;font-size:18px;margin-right:10px;vertical-align:3px}
+h3{font-size:20px;margin:24px 0 6px}
+p{margin:8px 0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin:14px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:14px 0}
+.grid .card{margin:0}
+.card h4{margin:0 0 4px;font-size:18px}
+.card p{margin:0;color:var(--muted);font-size:15.5px}
+.tag{display:inline-block;font-size:12.5px;padding:1px 9px;border-radius:99px;background:var(--surface-2);color:var(--muted);margin-bottom:8px}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.note.ok{border-color:var(--ok);background:var(--ok-soft)}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.note b{display:block;margin-bottom:2px}
+code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.88em;background:var(--surface-2);padding:1px 6px;border-radius:5px}
+.code{position:relative;margin:12px 0}
+.code .label{font-size:13px;color:var(--muted);margin-bottom:4px}
+pre{margin:0;background:var(--code-bg);color:var(--code-text);padding:16px 18px;border-radius:12px;overflow-x:auto;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.prompt pre{font-family:"Sarabun",system-ui,sans-serif;font-size:16px;background:var(--surface);color:var(--text);border:1px dashed var(--accent)}
+.copy{position:absolute;top:28px;right:8px;font:600 13px "Sarabun",sans-serif;border:0;border-radius:8px;padding:4px 12px;background:var(--accent);color:#fff;cursor:pointer;opacity:.9}
+.copy:hover{opacity:1}
+.steps{list-style:none;padding:0;margin:16px 0;counter-reset:s}
+.steps>li{counter-increment:s;position:relative;padding:0 0 18px 56px}
+.steps>li::before{content:counter(s);position:absolute;left:0;top:0;width:38px;height:38px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);color:var(--accent);font-weight:700;display:grid;place-items:center}
+.steps>li::after{content:"";position:absolute;left:18px;top:42px;bottom:4px;width:2px;background:var(--border)}
+.steps>li:last-child::after{display:none}
+.steps strong{font-size:18px}
+.steps .who{font-size:13px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:15.5px;background:var(--surface);border-radius:12px;overflow:hidden}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:var(--surface-2);font-weight:700}
+tr:last-child td{border-bottom:0}
+.formula{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.formula span{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 12px;font-size:15px}
+.formula span b{color:var(--accent)}
+.checklist{list-style:none;padding:0}
+.checklist li{padding:4px 0 4px 30px;position:relative}
+.checklist li::before{content:"☐";position:absolute;left:4px;color:var(--accent)}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:14px 0}
+.flow span{background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:5px 14px;font-size:15px}
+.flow i{color:var(--muted);font-style:normal}
+.theme-btn{position:fixed;right:16px;bottom:16px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:99px;padding:8px 14px;font:600 14px "Sarabun",sans-serif;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+footer{margin-top:48px;color:var(--muted);font-size:14px;border-top:1px solid var(--border);padding-top:16px}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr;padding:0 16px;gap:0}
+  nav.toc{position:static;max-height:none;padding:20px 0 0}
+  nav.toc ol{display:flex;flex-wrap:wrap;gap:4px}
+  nav.toc a{background:var(--surface);border:1px solid var(--border);font-size:14px;padding:4px 10px}
+  main{padding-top:16px}
+  .steps>li{padding-left:50px}
+}
+@page{size:A4;margin:14mm 14mm 16mm}
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-size:14px;line-height:1.65}
+  nav.toc,.copy,.theme-btn{display:none}
+  .layout{display:block;padding:0;max-width:none}
+  main{padding:0}
+  section{padding-top:8px}
+  h2{break-after:avoid;margin-top:14px}
+  h3{break-after:avoid}
+  .card,.code,.note,tr,.steps>li{break-inside:avoid}
+  #setup,#workflow,#prompt,#edit,#subs,#voice,#code-video,#ai-video,#full,#specs,#trouble,#checklist{break-before:page}
+  pre{font-size:12.5px}
+  .table-wrap{overflow:visible;break-inside:avoid}
+  html,body{background:#fff}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="สารบัญ">
+  <h2>สารบัญ</h2>
+  <ol>
+    <li><a href="#overview">ภาพรวม</a></li>
+    <li><a href="#setup">ติดตั้งเครื่องมือ</a></li>
+    <li><a href="#workflow">Workflow ทั้งหมด</a></li>
+    <li><a href="#prompt">หลักเขียน Prompt</a></li>
+    <li><a href="#edit">ตัดต่อด้วย FFmpeg</a></li>
+    <li><a href="#subs">ซับไตเติลไทย</a></li>
+    <li><a href="#voice">เสียงพากย์ AI</a></li>
+    <li><a href="#code-video">สร้างวิดีโอด้วยโค้ด</a></li>
+    <li><a href="#ai-video">Prompt วิดีโอ AI</a></li>
+    <li><a href="#full">ตัวอย่างงานจริงครบวงจร</a></li>
+    <li><a href="#specs">ขนาดตามแพลตฟอร์ม</a></li>
+    <li><a href="#trouble">แก้ปัญหาที่พบบ่อย</a></li>
+    <li><a href="#checklist">Checklist ก่อนส่งงาน</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">คู่มือฉบับใช้งานจริง</div>
+  <h1>สร้างและตัดต่อวิดีโอด้วย Claude Code</h1>
+  <p class="lead">อธิบายสิ่งที่ต้องการเป็นภาษาธรรมดา แล้วให้ Claude Code เขียนคำสั่ง ติดตั้งเครื่องมือ และ render วิดีโอให้ คู่มือนี้รวมขั้นตอนทำงาน (workflow) วิธีเขียน prompt และตัวอย่างที่กดคัดลอกไปใช้ได้ทันที</p>
+</header>
+
+<!-- 1 -->
+<section id="overview">
+  <h2><span class="num">1</span>ภาพรวม: Claude Code ทำอะไรได้บ้าง</h2>
+  <p>Claude Code <b>ไม่ได้สร้างภาพวิดีโอเอง</b> แต่ทำหน้าที่เป็น "ผู้ช่วยตัดต่อที่สั่งเครื่องมือแทนคุณ" ผ่านคำสั่งและโค้ด แบ่งงานได้ 5 แบบ</p>
+  <div class="grid">
+    <div class="card"><span class="tag">ง่ายสุด</span><h4>✂️ ตัดต่อคลิปเดิม</h4><p>ตัด ต่อ ย่อขนาด เปลี่ยนสัดส่วน ใส่เพลงและโลโก้ ด้วย FFmpeg</p></div>
+    <div class="card"><span class="tag">ภาษาไทยได้</span><h4>💬 ซับไตเติลอัตโนมัติ</h4><p>ถอดเสียงด้วย Whisper เป็นไฟล์ .srt แล้วฝังลงในวิดีโอ</p></div>
+    <div class="card"><span class="tag">ฟรี</span><h4>🎙️ เสียงพากย์ AI</h4><p>แปลงสคริปต์เป็นเสียงไทยด้วย edge-tts</p></div>
+    <div class="card"><span class="tag">สร้างใหม่</span><h4>🎬 วิดีโอจากโค้ด</h4><p>โมชันกราฟิก สไลด์วิดีโอ อินโฟกราฟิก ด้วย Remotion / MoviePy / Manim</p></div>
+    <div class="card"><span class="tag">ทำงานร่วมกัน</span><h4>✨ วิดีโอ AI</h4><p>Claude เขียน prompt และสตอรีบอร์ดให้ แล้วนำไปใช้กับ Veo, Runway, Kling, Sora</p></div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section id="setup">
+  <h2><span class="num">2</span>ติดตั้งเครื่องมือ (Windows)</h2>
+  <p>ทำครั้งเดียว ติดตั้งเฉพาะตัวที่จะใช้ก็ได้ หรือพิมพ์บอก Claude Code ว่า <i>"ช่วยติดตั้ง FFmpeg, Python และ Node.js ให้หน่อย"</i> ก็ได้เหมือนกัน</p>
+  <div class="table-wrap"><table>
+    <tr><th>เครื่องมือ</th><th>ใช้ทำอะไร</th><th>คำสั่งติดตั้ง</th></tr>
+    <tr><td><b>FFmpeg</b></td><td>ตัดต่อ แปลงไฟล์ ใส่ซับและเสียง</td><td><code>winget install Gyan.FFmpeg</code></td></tr>
+    <tr><td><b>Python</b></td><td>รัน Whisper, edge-tts, MoviePy</td><td><code>winget install Python.Python.3.12</code></td></tr>
+    <tr><td><b>Node.js</b></td><td>รัน Remotion</td><td><code>winget install OpenJS.NodeJS.LTS</code></td></tr>
+    <tr><td><b>เครื่องมือ Python</b></td><td>ถอดเสียง, เสียงพากย์, ประกอบคลิป</td><td><code>pip install openai-whisper edge-tts moviepy</code></td></tr>
+    <tr><td><b>ฟอนต์ไทย</b></td><td>ซับไตเติลและข้อความบนวิดีโอ</td><td>ดาวน์โหลด Sarabun / Kanit / Prompt จาก Google Fonts แล้วติดตั้งลงเครื่อง</td></tr>
+  </table></div>
+  <div class="note warn"><b>⚠️ ติดตั้งเสร็จแล้วต้องเปิดหน้าต่างใหม่</b>ติดตั้งเสร็จแล้วให้ปิดแล้วเปิด terminal หรือ Claude Code ใหม่ ไม่อย่างนั้นอาจขึ้นว่า "ffmpeg is not recognized"</div>
+</section>
+
+<!-- 3 -->
+<section id="workflow">
+  <h2><span class="num">3</span>Workflow การผลิตวิดีโอทั้งหมด</h2>
+  <p>ใช้ได้ทั้งคลิปสอน คลิปขายของ และคลิปโซเชียล ขั้นไหนที่ไม่ต้องใช้ข้ามไปได้เลย</p>
+  <div class="flow"><span>วางแผน</span><i>→</i><span>สคริปต์</span><i>→</i><span>สตอรีบอร์ด</span><i>→</i><span>เตรียมไฟล์</span><i>→</i><span>เสียง</span><i>→</i><span>ประกอบภาพ</span><i>→</i><span>ซับ+เพลง</span><i>→</i><span>Export</span><i>→</i><span>ตรวจ</span></div>
+  <ol class="steps">
+    <li><strong>วางแผน (Brief)</strong> <span class="who">· คุณ + Claude</span><br>กำหนดเป้าหมาย กลุ่มผู้ชม แพลตฟอร์ม ความยาว และโทนของคลิป<br><code>"ช่วยวางแผนคลิป TikTok 45 วิ แนะนำคอร์สออนไลน์ สำหรับครู โทนเป็นกันเอง"</code></li>
+    <li><strong>เขียนสคริปต์</strong> <span class="who">· Claude</span><br>ให้ Claude เขียนบทพูดแยกเป็นฉาก พร้อมเวลาของแต่ละฉาก 3 วินาทีแรกต้องดึงความสนใจ (hook) ให้ได้</li>
+    <li><strong>สตอรีบอร์ด / Shot list</strong> <span class="who">· Claude</span><br>ทำตารางแต่ละฉาก ระบุภาพที่เห็น ข้อความบนจอ เสียง และระยะเวลา ให้บันทึกเป็นไฟล์ <code>storyboard.md</code></li>
+    <li><strong>เตรียมไฟล์ (Assets)</strong> <span class="who">· คุณ</span><br>รวมคลิปดิบ รูป โลโก้ เพลง และฟอนต์ไว้ในโฟลเดอร์เดียว เช่น <code>assets/</code></li>
+    <li><strong>ทำเสียงพากย์</strong> <span class="who">· Claude + edge-tts</span><br>แปลงสคริปต์เป็นไฟล์เสียง ความยาวของเสียงจะเป็นตัวกำหนดความยาวของแต่ละฉาก</li>
+    <li><strong>ประกอบภาพ</strong> <span class="who">· Claude + FFmpeg/Remotion</span><br>ตัดต่อคลิปหรือสร้างภาพเคลื่อนไหวตามสตอรีบอร์ด <b>ให้ render ตัวอย่างสั้นๆ (preview) ก่อนเสมอ</b></li>
+    <li><strong>ใส่ซับ เพลง และเสียงประกอบ</strong> <span class="who">· Claude</span><br>ฝังซับไทย ปรับเพลงให้เบากว่าเสียงพูด และใส่ fade-in / fade-out</li>
+    <li><strong>Export</strong> <span class="who">· Claude</span><br>render ไฟล์สุดท้ายตามขนาดของแพลตฟอร์ม (ดู<a href="#specs">ข้อ 11</a>)</li>
+    <li><strong>ตรวจสอบ (QA)</strong> <span class="who">· คุณ</span><br>ดูคลิปจริงทั้งคลิป ตรวจคำผิด เสียงตรงกับภาพไหม และฟอนต์แสดงผลถูกไหม แล้วบอก Claude ให้แก้เฉพาะจุดที่ผิด</li>
+  </ol>
+</section>
+
+<!-- 4 -->
+<section id="prompt">
+  <h2><span class="num">4</span>หลักการเขียน Prompt ให้ Claude Code</h2>
+  <p>prompt ที่ดีควรตอบให้ได้ว่า <b>"เอาไฟล์อะไร → ทำอะไร → ออกมาเป็นแบบไหน"</b> ใช้สูตรนี้</p>
+  <div class="formula">
+    <span><b>เป้าหมาย</b> ทำคลิปอะไร</span>
+    <span><b>Input</b> ไฟล์อยู่ไหน</span>
+    <span><b>Output</b> ขนาด/ความยาว/ชื่อไฟล์</span>
+    <span><b>สไตล์</b> โทน ฟอนต์ สี</span>
+    <span><b>ข้อห้าม</b> สิ่งที่ห้ามทำ</span>
+    <span><b>ตรวจ</b> ทำ preview ก่อน</span>
+  </div>
+
+  <div class="code prompt"><div class="label">📋 เทมเพลต Prompt (คัดลอกไปแก้ได้)</div>
+<pre>เป้าหมาย: ทำคลิป [ประเภทคลิป] เรื่อง [หัวข้อ] สำหรับ [แพลตฟอร์ม]
+Input: ไฟล์อยู่ในโฟลเดอร์ [ชื่อโฟลเดอร์] ได้แก่ [รายการไฟล์]
+Output: [ขนาด เช่น 1080x1920], ยาวประมาณ [X] วินาที, 30fps, บันทึกเป็น output/[ชื่อไฟล์].mp4
+สไตล์: โทน [สนุก/ทางการ/มินิมอล], ฟอนต์ [Sarabun], สีหลัก [#xxxxxx]
+ข้อห้าม: ห้ามเขียนทับไฟล์ต้นฉบับ
+ขั้นตอน: ทำ preview 10 วินาทีให้ดูก่อน ถ้าผมโอเคค่อย render เต็ม
+และช่วยเขียนเป็นสคริปต์ที่รันซ้ำได้ด้วย</pre><button class="copy">คัดลอก</button></div>
+
+  <h3>✅ เคล็ดลับที่ช่วยได้มาก</h3>
+  <div class="grid">
+    <div class="card"><h4>ระบุตัวเลขชัดเจน</h4><p>เขียนว่า "เพลงเบาลง 70%" หรือ "ช่วง 0:30–1:45" แทน "เพลงเบาๆ" หรือ "ช่วงกลางคลิป"</p></div>
+    <div class="card"><h4>ทำทีละขั้น</h4><p>สั่งงานใหญ่เป็นรอบเดียวมักพลาด ให้แบ่งเป็น สคริปต์ → เสียง → ภาพ → ซับ</p></div>
+    <div class="card"><h4>ขอ preview เสมอ</h4><p>render แค่ 5–10 วินาทีก่อน ประหยัดเวลามากเวลาต้องแก้</p></div>
+    <div class="card"><h4>ขอให้ทำเป็นสคริปต์</h4><p>เช่น <code>make_video.py</code> ครั้งหน้าแค่เปลี่ยนไฟล์แล้วรันใหม่</p></div>
+    <div class="card"><h4>แก้แบบเจาะจง</h4><p>"ซับฉากที่ 3 ขึ้นช้าไป 0.5 วิ" ดีกว่า "ซับไม่ตรง"</p></div>
+    <div class="card"><h4>เก็บต้นฉบับไว้</h4><p>ให้ไฟล์ผลลัพธ์อยู่ใน <code>output/</code> แยกจาก <code>assets/</code></p></div>
+  </div>
+
+  <div class="table-wrap"><table>
+    <tr><th>❌ Prompt กว้างเกินไป</th><th>✅ Prompt ที่ดี</th></tr>
+    <tr><td>ทำคลิปให้หน่อย</td><td>ทำคลิปแนวตั้ง 1080x1920 ยาว 30 วิ จากรูป 5 รูปใน assets/ รูปละ 6 วิ ซูมเข้าช้าๆ ใส่เพลง bg.mp3 แล้ว fade-out ตอนจบ</td></tr>
+    <tr><td>ใส่ซับ</td><td>ถอดเสียงภาษาไทยจาก talk.mp4 ด้วย Whisper ทำเป็น .srt ให้ผมตรวจก่อน แล้วฝังซับฟอนต์ Sarabun ขนาด 22 ตัวขาวขอบดำ</td></tr>
+    <tr><td>ทำให้ไฟล์เล็กลง</td><td>บีบ final.mp4 ให้เล็กกว่า 50MB โดยคงความละเอียด 1080p</td></tr>
+  </table></div>
+</section>
+
+<!-- 5 -->
+<section id="edit">
+  <h2><span class="num">5</span>ตัดต่อคลิปด้วย FFmpeg</h2>
+  <p>ไม่ต้องจำคำสั่งเอง แค่พิมพ์ prompt ทางซ้าย Claude จะเขียนคำสั่งทางขวาให้ ตารางนี้มีไว้ให้เห็นว่าเบื้องหลังเกิดอะไรขึ้น</p>
+  <div class="table-wrap"><table>
+    <tr><th>Prompt ที่พิมพ์</th><th>คำสั่งที่ Claude จะรัน (ประมาณนี้)</th></tr>
+    <tr><td>ตัด clip.mp4 ช่วง 0:30 ถึง 1:45</td><td><code>ffmpeg -ss 00:00:30 -to 00:01:45 -i clip.mp4 -c copy cut.mp4</code></td></tr>
+    <tr><td>ต่อทุกคลิปในโฟลเดอร์เป็นคลิปเดียว</td><td>สร้าง <code>list.txt</code> แล้วรัน <code>ffmpeg -f concat -safe 0 -i list.txt -c copy merged.mp4</code></td></tr>
+    <tr><td>แปลงเป็นแนวตั้ง 9:16</td><td><code>ffmpeg -i in.mp4 -vf "crop=ih*9/16:ih,scale=1080:1920" out.mp4</code></td></tr>
+    <tr><td>ใส่เพลงพื้นหลังเบาๆ</td><td><code>ffmpeg -i video.mp4 -i bg.mp3 -filter_complex "[1:a]volume=0.3[bg];[0:a][bg]amix=inputs=2:duration=first[a]" -map 0:v -map "[a]" -c:v copy out.mp4</code></td></tr>
+    <tr><td>ใส่โลโก้มุมขวาบน</td><td><code>ffmpeg -i in.mp4 -i logo.png -filter_complex "overlay=W-w-30:30" out.mp4</code></td></tr>
+    <tr><td>เร่งความเร็ว 1.5 เท่า</td><td><code>ffmpeg -i in.mp4 -vf "setpts=PTS/1.5" -af "atempo=1.5" fast.mp4</code></td></tr>
+    <tr><td>บีบไฟล์ให้เล็กลง</td><td><code>ffmpeg -i in.mp4 -c:v libx264 -crf 28 -preset slow -c:a aac small.mp4</code></td></tr>
+    <tr><td>ดึงเสียงออกเป็น mp3</td><td><code>ffmpeg -i in.mp4 -vn -q:a 2 audio.mp3</code></td></tr>
+    <tr><td>ทำ GIF จาก 5 วินาทีแรก</td><td><code>ffmpeg -t 5 -i in.mp4 -vf "fps=12,scale=480:-1" out.gif</code></td></tr>
+  </table></div>
+  <div class="note ok"><b>💡 ทำทีละหลายไฟล์ (Batch)</b>"แปลงทุกไฟล์ .mov ในโฟลเดอร์นี้เป็น .mp4 แนวตั้ง 1080x1920 ใส่ใน output/" Claude จะเขียน loop ทำให้ครบทุกไฟล์</div>
+</section>
+
+<!-- 6 -->
+<section id="subs">
+  <h2><span class="num">6</span>ซับไตเติลภาษาไทยอัตโนมัติ</h2>
+  <ol class="steps">
+    <li><strong>ถอดเสียงเป็นไฟล์ .srt</strong><div class="code"><pre>whisper talk.mp4 --language th --model medium --output_format srt</pre><button class="copy">คัดลอก</button></div>
+    ใช้โมเดล <code>medium</code> หรือ <code>large</code> เพราะแม่นกับภาษาไทยกว่า แต่จะช้ากว่า</li>
+    <li><strong>ให้ Claude ตรวจและแก้ซับ</strong><br><code>"ตรวจไฟล์ talk.srt แก้คำผิด ตัดบรรทัดไม่ให้เกิน 2 บรรทัดต่อซับ ชื่อเฉพาะคือ ___"</code></li>
+    <li><strong>ฝังซับลงวิดีโอ</strong><div class="code"><pre>ffmpeg -i talk.mp4 -vf "subtitles=talk.srt:force_style='FontName=Sarabun,FontSize=22,Outline=2'" talk_sub.mp4</pre><button class="copy">คัดลอก</button></div></li>
+  </ol>
+  <div class="note warn"><b>⚠️ ซับไทยขึ้นเป็นสี่เหลี่ยม □□□</b>เกิดจากเครื่องยังไม่มีฟอนต์ไทยที่ระบุไว้ ให้ติดตั้งฟอนต์ Sarabun ลงเครื่องก่อน และใส่ชื่อฟอนต์ใน <code>FontName</code> ให้ตรงกับชื่อที่ติดตั้ง</div>
+</section>
+
+<!-- 7 -->
+<section id="voice">
+  <h2><span class="num">7</span>เสียงพากย์ AI ภาษาไทย</h2>
+  <div class="grid">
+    <div class="card"><span class="tag">ฟรี</span><h4>edge-tts</h4><p>เสียงหญิง <code>th-TH-PremwadeeNeural</code><br>เสียงชาย <code>th-TH-NiwatNeural</code></p></div>
+    <div class="card"><span class="tag">เสียงธรรมชาติกว่า</span><h4>ElevenLabs</h4><p>ต้องมี API key ให้ Claude เขียนสคริปต์เรียก API ให้ได้</p></div>
+  </div>
+  <div class="code"><div class="label">สร้างเสียงจากไฟล์สคริปต์ พร้อมไฟล์ซับ</div><pre>edge-tts --voice th-TH-PremwadeeNeural --rate=+5% --file script.txt --write-media voice.mp3 --write-subtitles voice.srt</pre><button class="copy">คัดลอก</button></div>
+  <div class="note ok"><b>💡 ได้ซับมาด้วยเลย</b>edge-tts สร้างไฟล์ซับที่ตรงกับเสียงให้ทันที ไม่ต้องใช้ Whisper ถอดเสียงซ้ำอีกรอบ</div>
+  <div class="code prompt"><div class="label">📋 Prompt ตัวอย่าง</div>
+<pre>อ่าน script.txt แล้วแยกเป็นฉาก ทำเสียงพากย์แต่ละฉากด้วย edge-tts เสียง th-TH-PremwadeeNeural
+บันทึกเป็น voice/scene01.mp3, scene02.mp3 ...
+แล้วสรุปความยาวของแต่ละไฟล์เป็นตารางให้ด้วย</pre><button class="copy">คัดลอก</button></div>
+</section>
+
+<!-- 8 -->
+<section id="code-video">
+  <h2><span class="num">8</span>สร้างวิดีโอใหม่ด้วยโค้ด</h2>
+  <div class="table-wrap"><table>
+    <tr><th>เครื่องมือ</th><th>เหมาะกับ</th><th>เริ่มต้น</th></tr>
+    <tr><td><b>Remotion</b> (React)</td><td>โมชันกราฟิก ข้อความเคลื่อนไหว คลิปโปรโมต และเทมเพลตที่ผลิตคลิปได้ทีละหลายตัว</td><td><code>npx create-video@latest</code></td></tr>
+    <tr><td><b>MoviePy</b> (Python)</td><td>ประกอบรูป ข้อความ และเสียงเป็นคลิปแบบรวดเร็ว เช่น สไลด์วิดีโอ</td><td><code>pip install moviepy</code></td></tr>
+    <tr><td><b>Manim</b> (Python)</td><td>แอนิเมชันอธิบายคณิตศาสตร์หรือแนวคิด เหมาะกับสื่อการสอน</td><td><code>pip install manim</code></td></tr>
+  </table></div>
+
+  <div class="code prompt"><div class="label">📋 Prompt: คลิปแนะนำสินค้าด้วย Remotion</div>
+<pre>สร้างโปรเจกต์ Remotion ใหม่ชื่อ product-video
+ทำคลิปแนวตั้ง 1080x1920, 30fps, ยาว 30 วินาที
+- ฉาก 1 (0–3 วิ): ข้อความ "ของดีที่ต้องมี!" เด้งเข้ามากลางจอ
+- ฉาก 2–4 (3–24 วิ): แสดงรูปสินค้าจาก assets/p1.jpg, p2.jpg, p3.jpg ฉากละ 7 วิ ซูมเข้าช้าๆ
+  พร้อมชื่อและราคาด้านล่าง (ข้อมูลอยู่ใน products.json)
+- ฉาก 5 (24–30 วิ): โลโก้ + "สั่งซื้อที่ลิงก์ในโปรไฟล์"
+ฟอนต์ Kanit สีหลัก #c2552d ใส่เพลง assets/bg.mp3
+เปิด Remotion Studio ให้ผมดูก่อน แล้วค่อย render เป็น output/product.mp4</pre><button class="copy">คัดลอก</button></div>
+
+  <div class="code prompt"><div class="label">📋 Prompt: สไลด์วิดีโอสอนด้วย MoviePy</div>
+<pre>เขียน make_lesson.py ด้วย MoviePy
+นำรูปใน slides/ (เรียงตามชื่อไฟล์) มาต่อกัน ให้แต่ละรูปยาวเท่ากับไฟล์เสียงที่ชื่อตรงกันใน voice/
+ใส่ซับจาก voice/*.srt ด้วยฟอนต์ Sarabun และ crossfade 0.5 วิระหว่างรูป
+export เป็น 1920x1080 ที่ output/lesson.mp4</pre><button class="copy">คัดลอก</button></div>
+</section>
+
+<!-- 9 -->
+<section id="ai-video">
+  <h2><span class="num">9</span>เขียน Prompt สำหรับวิดีโอ AI (Veo, Runway, Kling, Sora)</h2>
+  <p>เครื่องมือกลุ่มนี้สร้างภาพวิดีโอจากข้อความ ส่วนใหญ่ <b>เขียนเป็นภาษาอังกฤษจะได้ผลดีกว่า</b> ให้ Claude ช่วยแปลและเรียบเรียงตามสูตรนี้</p>
+  <div class="formula">
+    <span><b>1</b> ช็อต/มุมกล้อง</span>
+    <span><b>2</b> ตัวละคร/วัตถุ</span>
+    <span><b>3</b> การกระทำ</span>
+    <span><b>4</b> ฉาก/สถานที่</span>
+    <span><b>5</b> แสง/บรรยากาศ</span>
+    <span><b>6</b> สไตล์ภาพ</span>
+    <span><b>7</b> การเคลื่อนกล้อง</span>
+  </div>
+  <div class="code"><div class="label">ตัวอย่าง Prompt วิดีโอ AI</div>
+<pre>Medium close-up shot of a young Thai teacher smiling while writing on a whiteboard
+in a bright modern classroom, soft morning sunlight through the windows,
+warm and friendly atmosphere, cinematic, shallow depth of field,
+slow dolly-in camera movement, 8 seconds, 16:9</pre><button class="copy">คัดลอก</button></div>
+
+  <div class="table-wrap"><table>
+    <tr><th>คำศัพท์กล้อง</th><th>ความหมาย</th></tr>
+    <tr><td><code>wide shot</code> / <code>close-up</code></td><td>ภาพกว้าง / ภาพใกล้</td></tr>
+    <tr><td><code>dolly-in</code> / <code>dolly-out</code></td><td>กล้องเคลื่อนเข้าหา / ถอยออก</td></tr>
+    <tr><td><code>pan left/right</code></td><td>กล้องหันซ้าย/ขวา</td></tr>
+    <tr><td><code>tracking shot</code></td><td>กล้องเคลื่อนตามตัวละคร</td></tr>
+    <tr><td><code>aerial / drone shot</code></td><td>มุมสูงจากโดรน</td></tr>
+    <tr><td><code>static shot</code></td><td>กล้องอยู่นิ่ง</td></tr>
+  </table></div>
+
+  <div class="code prompt"><div class="label">📋 Prompt ให้ Claude เขียน prompt วิดีโอ AI ให้</div>
+<pre>ผมจะทำคลิปโฆษณา 30 วิ เรื่อง [หัวข้อ] ด้วย [Veo/Kling/Runway]
+ช่วยแบ่งเป็น 4 ช็อต ช็อตละ 6–8 วิ
+แต่ละช็อตให้เขียน prompt ภาษาอังกฤษตามสูตร (ช็อต, ตัวละคร, การกระทำ, ฉาก, แสง, สไตล์, การเคลื่อนกล้อง)
+ให้ตัวละครและโทนสีเหมือนกันทุกช็อต และทำตารางสตอรีบอร์ดภาษาไทยกำกับไว้ด้วย</pre><button class="copy">คัดลอก</button></div>
+  <div class="note"><b>🎯 ให้ภาพแต่ละช็อตดูต่อเนื่องกัน</b>บรรยายตัวละครด้วยคำเดิมทุกช็อต (เช่น "a young Thai woman in a navy blazer") ถ้าเครื่องมือรองรับภาพอ้างอิง (reference image) ให้ใส่ด้วย เสร็จแล้วนำคลิปที่ได้มาต่อด้วย FFmpeg พร้อมใส่เสียงพากย์และซับ</div>
+</section>
+
+<!-- 10 -->
+<section id="full">
+  <h2><span class="num">10</span>ตัวอย่างงานจริงครบวงจร: คลิปสอน 1 นาที</h2>
+  <p>ส่ง prompt ทีละขั้นตามลำดับ ตรวจผลลัพธ์ของแต่ละขั้นก่อนไปขั้นต่อไป</p>
+  <div class="code prompt"><div class="label">ขั้น 1: เตรียมโปรเจกต์ + สคริปต์</div>
+<pre>สร้างโครงโฟลเดอร์ assets/ voice/ output/
+เขียนสคริปต์คลิปสอน 1 นาที เรื่อง "[หัวข้อ]" สำหรับ [กลุ่มผู้ชม]
+แบ่ง 5 ฉาก มี hook ใน 3 วิแรก บันทึกเป็น script.md พร้อมตารางสตอรีบอร์ด</pre><button class="copy">คัดลอก</button></div>
+  <div class="code prompt"><div class="label">ขั้น 2: เสียงพากย์</div>
+<pre>ทำเสียงพากย์แต่ละฉากจาก script.md ด้วย edge-tts เสียง th-TH-NiwatNeural
+บันทึกใน voice/ พร้อมไฟล์ .srt และบอกความยาวแต่ละฉาก</pre><button class="copy">คัดลอก</button></div>
+  <div class="code prompt"><div class="label">ขั้น 3: ภาพ</div>
+<pre>สร้างภาพประกอบแต่ละฉากด้วย Remotion ตามสตอรีบอร์ด (ข้อความเคลื่อนไหว + ไอคอน)
+ให้ความยาวแต่ละฉากเท่ากับเสียงพากย์ ขนาด 1080x1920
+render preview ฉากแรกให้ดูก่อน</pre><button class="copy">คัดลอก</button></div>
+  <div class="code prompt"><div class="label">ขั้น 4: ประกอบร่าง + Export</div>
+<pre>render ทุกฉาก ใส่ซับไทยฟอนต์ Sarabun ใส่เพลง assets/bg.mp3 ให้เบากว่าเสียงพูดมาก
+fade-out 1 วิตอนจบ export เป็น output/lesson_final.mp4
+และเขียน README บอกวิธีรันซ้ำด้วย</pre><button class="copy">คัดลอก</button></div>
+</section>
+
+<!-- 11 -->
+<section id="specs">
+  <h2><span class="num">11</span>ขนาดวิดีโอตามแพลตฟอร์ม</h2>
+  <div class="table-wrap"><table>
+    <tr><th>แพลตฟอร์ม</th><th>สัดส่วน</th><th>ขนาด (px)</th><th>หมายเหตุ</th></tr>
+    <tr><td>TikTok / Reels / YouTube Shorts</td><td>9:16</td><td>1080 × 1920</td><td>อย่าวางข้อความชิดขอบบนและล่าง เพราะ UI ของแอปจะบัง</td></tr>
+    <tr><td>YouTube / วิดีโอสอนทั่วไป</td><td>16:9</td><td>1920 × 1080</td><td>มาตรฐาน 30fps</td></tr>
+    <tr><td>Facebook / Instagram Feed</td><td>4:5 หรือ 1:1</td><td>1080 × 1350 / 1080 × 1080</td><td>ใส่ซับไว้เสมอ เพราะคนส่วนใหญ่ดูแบบปิดเสียง</td></tr>
+    <tr><td>LINE / ส่งในแชต</td><td>ตามต้นฉบับ</td><td>720p ก็พอ</td><td>บีบไฟล์ด้วย <code>-crf 28</code></td></tr>
+  </table></div>
+  <p>ใช้ไฟล์ <b>MP4 (H.264 + AAC)</b> ได้กับทุกแพลตฟอร์ม</p>
+</section>
+
+<!-- 12 -->
+<section id="trouble">
+  <h2><span class="num">12</span>แก้ปัญหาที่พบบ่อย</h2>
+  <div class="table-wrap"><table>
+    <tr><th>อาการ</th><th>สาเหตุ / วิธีแก้</th></tr>
+    <tr><td>ffmpeg is not recognized</td><td>ปิดแล้วเปิด terminal / Claude Code ใหม่หลังติดตั้ง หรือบอก Claude ให้เพิ่ม FFmpeg ใน PATH</td></tr>
+    <tr><td>ซับไทยเป็น □□□ หรือสระลอย</td><td>ติดตั้งฟอนต์ไทยลงเครื่อง และระบุ <code>FontName</code> ให้ตรงชื่อ</td></tr>
+    <tr><td>เสียงไม่ตรงกับภาพหลังตัด</td><td>การตัดด้วย <code>-c copy</code> ตัดได้แค่ที่ keyframe ให้บอก Claude ว่า "ตัดแบบ re-encode ให้แม่นยำ"</td></tr>
+    <tr><td>ไฟล์ใหญ่เกินไป</td><td>เพิ่มค่า <code>-crf</code> (23 → 28) หรือลดความละเอียดเป็น 720p</td></tr>
+    <tr><td>Render ช้ามาก</td><td>render preview สั้นๆ ก่อน และใช้ Whisper โมเดลเล็กลง (<code>small</code>) ระหว่างทดลอง</td></tr>
+    <tr><td>ต่อคลิปแล้ว error</td><td>คลิปมีขนาดหรือ fps ไม่เท่ากัน ให้บอก Claude ว่า "แปลงทุกคลิปให้เป็นสเปกเดียวกันก่อนต่อ"</td></tr>
+  </table></div>
+  <div class="note ok"><b>💡 วิธีที่ง่ายที่สุดเวลาเจอ error</b>คัดลอกข้อความ error ทั้งหมดไปวางให้ Claude Code แล้วพิมพ์ว่า "แก้ให้หน่อย"</div>
+</section>
+
+<!-- 13 -->
+<section id="checklist">
+  <h2><span class="num">13</span>Checklist ก่อนส่งงาน</h2>
+  <div class="card">
+  <ul class="checklist">
+    <li>3 วินาทีแรกดึงความสนใจได้</li>
+    <li>ขนาดและสัดส่วนตรงกับแพลตฟอร์ม</li>
+    <li>ซับไทยถูกต้อง ไม่มีคำผิด ฟอนต์แสดงผลครบ</li>
+    <li>ข้อความไม่ชิดขอบจนโดน UI ของแอปบัง</li>
+    <li>เพลงเบากว่าเสียงพูด และไม่ติดลิขสิทธิ์</li>
+    <li>เสียงตรงกับภาพตลอดทั้งคลิป</li>
+    <li>มี Call-to-Action ตอนจบ</li>
+    <li>ดูจริงบนมือถือ 1 รอบก่อนโพสต์</li>
+    <li>เก็บไฟล์ต้นฉบับและสคริปต์ไว้ใช้ซ้ำ</li>
+  </ul>
+  </div>
+</section>
+
+<footer>คู่มือสร้างวิดีโอด้วย Claude Code · ใช้ร่วมกับ FFmpeg, Whisper, edge-tts, Remotion, MoviePy และเครื่องมือสร้างวิดีโอ AI</footer>
+</main>
+</div>
+
+<button class="theme-btn" id="themeBtn" aria-label="สลับโหมดสี">🌓 โหมดสี</button>
+
+<script>
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var text = btn.parentElement.querySelector('pre').innerText;
+    var done = function(){ btn.textContent = 'คัดลอกแล้ว ✓'; setTimeout(function(){ btn.textContent = 'คัดลอก'; }, 1500); };
+    try {
+      navigator.clipboard.writeText(text).then(done, function(){ fallback(text); done(); });
+    } catch(e) { fallback(text); done(); }
+  });
+});
+function fallback(text){
+  var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  ta.remove();
+}
+(function(){
+  var root = document.documentElement, key = 'video-guide-theme';
+  try { var saved = localStorage.getItem(key); if (saved) root.setAttribute('data-theme', saved); } catch(e) {}
+  document.getElementById('themeBtn').addEventListener('click', function(){
+    var cur = root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(key, next); } catch(e) {}
+  });
+})();
+</script>
+</body>
+</html>
